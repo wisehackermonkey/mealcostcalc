@@ -50,16 +50,18 @@
 <tr><th>Total</th><th>-</th><th><output id="oTotCooked">-</output></th><th><output id="oTotBuy">-</output></th><th><output id="oTotCost">-</output></th><th><output id="oTotMoney">-</output></th></tr>
 </table>
 
-<h2>Additional cost per meal</h2>
+<h2>Bought item split over each meal</h2>
 <table border="1" cellpadding="6">
 <tr>
-<th>Additional cost per meal (MXN)</th>
-<th>Additional cost per meal, % change</th>
+<th>Bought item split over each meal is (MXN)</th>
+<th>% change</th>
+<th>Cost per meal</th>
 <th>New cost per meal</th>
 </tr>
 <tr>
 <td><input type="number" id="extra" min="0" step="any" inputmode="decimal"></td>
 <td><output id="oExtraPct">-</output></td>
+<td><output id="oBaseMeal">-</output></td>
 <td><output id="oNewMeal">-</output></td>
 </tr>
 </table>
@@ -300,6 +302,7 @@
     var extraPct = mealCost > 0 ? extra / mealCost * 100 : NaN;
     var newMeal = mealCost + extra;
     out("oExtraPct", pct(extraPct));
+    out("oBaseMeal", money(mealCost));
     out("oNewMeal", money(newMeal));
 
     out("oMeals", M);
@@ -326,8 +329,9 @@
     L.push("Actual vs estimated = " + (has("actual")
       ? "(" + money(num("actual")) + " - " + money(est) + ") / " + money(est) + " = " + pct(diff)
       : "enter actual spend"));
-    L.push("Additional cost effect = " + money(extra) + " / " + money(mealCost) +
-           " = " + pct(extraPct) + ", new cost per meal = " + money(newMeal));
+    L.push("Bought item split over each meal = " + money(extra) + " / " + money(mealCost) +
+           " = " + pct(extraPct) + " change, new cost per meal = " + money(mealCost) +
+           " + " + money(extra) + " = " + money(newMeal));
     $("example").textContent = L.join("\n");
   }
 
