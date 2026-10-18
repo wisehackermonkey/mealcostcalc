@@ -14,35 +14,31 @@
 
 <h2>Results</h2>
 
-<h1>Cost per meal: <output id="oMeal">-</output></h1>
-<h1>Cost per snack: <output id="oSnack">-</output></h1>
+<h1>Cost per meal: <output id="oMeal">-</output><br>
+Cost per snack: <output id="oSnack">-</output></h1>
 
-<p>Food budget (total): <output id="oBudget">-</output></p>
-<p><strong>Actual vs. estimated spend:</strong> <output id="oDiff">-</output></p>
-<hr>
-<p>Actual monthly food spend (total): <output id="oActual">-</output></p>
-<hr>
-
-<p>Buffer reserve: <output id="oBuffer">-</output></p>
-<p>Food budget after gas and labor: <output id="oAfterFixed">-</output></p>
-<p>Spendable on meals and snacks: <output id="oSpendable">-</output></p>
-
-<p><strong>Spendable on meals:</strong> <output id="oMealBudget">-</output></p>
-<ul>
-<li>Pork $ available: <output id="oPorkMoney">-</output></li>
-<li>Chicken $ available: <output id="oChickenMoney">-</output></li>
-<li>Beef $ available: <output id="oBeefMoney">-</output></li>
-</ul>
-
-<p><strong>Spendable on snacks:</strong> <output id="oSnackSpend">-</output></p>
-<p><strong>Total monthly budget available for snacks:</strong> <output id="oSnackBudget">-</output></p>
-
-<p>Snack weight needed per month: <output id="oWeight">-</output></p>
-<p>Meal weight needed per month: <output id="oMealWeight">-</output></p>
+<p>
+Food budget (total): <output id="oBudget">-</output><br>
+<strong>Actual vs. estimated spend:</strong> <output id="oDiff">-</output><br>
+--------<br>
+Actual monthly food spend (total): <output id="oActual">-</output><br>
+--------<br>
+Buffer reserve: <output id="oBuffer">-</output><br>
+Food budget after gas and labor: <output id="oAfterFixed">-</output><br>
+Spendable on meals and snacks: <output id="oSpendable">-</output><br>
+<strong>Spendable on meals:</strong> <output id="oMealBudget">-</output><br>
+&nbsp;&nbsp;&nbsp;&nbsp;Pork $ available: <output id="oPorkMoney">-</output><br>
+&nbsp;&nbsp;&nbsp;&nbsp;Chicken $ available: <output id="oChickenMoney">-</output><br>
+&nbsp;&nbsp;&nbsp;&nbsp;Beef $ available: <output id="oBeefMoney">-</output><br>
+<strong>Spendable on snacks:</strong> <output id="oSnackSpend">-</output><br>
+<strong>Total monthly budget available for snacks:</strong> <output id="oSnackBudget">-</output><br>
+Snack weight needed per month: <output id="oWeight">-</output><br>
+Meal weight needed per month: <output id="oMealWeight">-</output>
+</p>
 
 <h2>Meat to buy (kg)</h2>
 <p><output id="oCookNote">-</output></p>
-<table border="1" cellpadding="4">
+<table border="1" cellpadding="2" cellspacing="0">
 <tr><th>Meat</th><th>Share of meat</th><th>Cooked kg needed</th><th>Kg to buy</th><th>Cost to buy</th><th>$ available</th></tr>
 <tr><td>Chicken</td><td><output id="oChShare">-</output></td><td><output id="oChCooked">-</output></td><td><output id="oChBuy">-</output></td><td><output id="oChCost">-</output></td><td><output id="oChMoney">-</output></td></tr>
 <tr><td>Pork</td><td><output id="oPoShare">-</output></td><td><output id="oPoCooked">-</output></td><td><output id="oPoBuy">-</output></td><td><output id="oPoCost">-</output></td><td><output id="oPoMoney">-</output></td></tr>
@@ -50,24 +46,33 @@
 <tr><th>Total</th><th>-</th><th><output id="oTotCooked">-</output></th><th><output id="oTotBuy">-</output></th><th><output id="oTotCost">-</output></th><th><output id="oTotMoney">-</output></th></tr>
 </table>
 
-<h2>Bought item split over each meal</h2>
-<table border="1" cellpadding="6">
+<h2>Cost of an added item, split over each meal</h2>
+<p>Example: 500 MXN / 52 meals (month) = 9.62... here it uses your meals per month.</p>
+<table border="1" cellpadding="3" cellspacing="0">
 <tr>
-<th>Bought item split over each meal is (MXN)</th>
+<th>Total cost of item (MXN)</th>
+<th>Meals per month</th>
+<th>Additional cost per meal with this item</th>
+<th>Additional cost per week</th>
 <th>% change</th>
 <th>Cost per meal</th>
 <th>New cost per meal</th>
 </tr>
 <tr>
 <td><input type="number" id="extra" min="0" step="any" inputmode="decimal"></td>
+<td><output id="oItemMeals">-</output></td>
+<td><output id="oExtraPerMeal">-</output></td>
+<td><output id="oExtraPerWeek">-</output></td>
 <td><output id="oExtraPct">-</output></td>
 <td><output id="oBaseMeal">-</output></td>
 <td><output id="oNewMeal">-</output></td>
 </tr>
 </table>
 
-<p>Meals per month: <output id="oMeals">-</output></p>
-<p>Snacks per month: <output id="oSnacks">-</output></p>
+<p>
+Meals per month: <output id="oMeals">-</output><br>
+Snacks per month: <output id="oSnacks">-</output>
+</p>
 
 <h2>Inputs</h2>
 <form id="f" onsubmit="return false">
@@ -145,8 +150,8 @@
 
 <h3>Notes / math</h3>
 <p><label for="notes">One expression per line, e.g. 120*4</label><br>
-<textarea id="notes" rows="8" cols="60"></textarea></p>
-<p><strong>Notes total:</strong> <output id="oNotes">0</output>
+<textarea id="notes" rows="8" cols="60"></textarea><br>
+<strong>Notes total:</strong> <output id="oNotes">0</output>
  (<output id="oNotesLines">0</output> lines counted)</p>
 
 </form>
@@ -229,7 +234,7 @@
     var gas = num("gas");
     var labor = num("labor");
     var bufPct = num("buffer");
-    var extra = num("extra");
+    var itemCost = num("extra");
     var cook = $("cook").checked;
 
     var laborMonth = labor * WEEKS;
@@ -299,8 +304,14 @@
       ? "Cook at home is ON: kg to buy includes the cooking-loss %."
       : "Cook at home is OFF: kg to buy equals cooked kg needed.");
 
-    var extraPct = mealCost > 0 ? extra / mealCost * 100 : NaN;
-    var newMeal = mealCost + extra;
+    // Added item split over meals
+    var extraPerMeal = M > 0 ? itemCost / M : NaN;
+    var extraPerWeek = itemCost / WEEKS;
+    var extraPct = mealCost > 0 ? extraPerMeal / mealCost * 100 : NaN;
+    var newMeal = mealCost + extraPerMeal;
+    out("oItemMeals", M);
+    out("oExtraPerMeal", money(extraPerMeal));
+    out("oExtraPerWeek", money(extraPerWeek));
     out("oExtraPct", pct(extraPct));
     out("oBaseMeal", money(mealCost));
     out("oNewMeal", money(newMeal));
@@ -329,9 +340,11 @@
     L.push("Actual vs estimated = " + (has("actual")
       ? "(" + money(num("actual")) + " - " + money(est) + ") / " + money(est) + " = " + pct(diff)
       : "enter actual spend"));
-    L.push("Bought item split over each meal = " + money(extra) + " / " + money(mealCost) +
-           " = " + pct(extraPct) + " change, new cost per meal = " + money(mealCost) +
-           " + " + money(extra) + " = " + money(newMeal));
+    L.push("Added item: " + money(itemCost) + " / " + M + " meals (month) = " +
+           money(extraPerMeal) + " additional per meal");
+    L.push("Added item per week: " + money(itemCost) + " / " + WEEKS + " weeks = " + money(extraPerWeek));
+    L.push("% change = " + money(extraPerMeal) + " / " + money(mealCost) + " = " + pct(extraPct));
+    L.push("New cost per meal = " + money(mealCost) + " + " + money(extraPerMeal) + " = " + money(newMeal));
     $("example").textContent = L.join("\n");
   }
 
