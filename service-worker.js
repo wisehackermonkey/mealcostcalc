@@ -1,5 +1,5 @@
 // service-worker.js
-var CACHE = "mealprep-calc-v1";
+var CACHE = "mealprep-calc-v2";
 var ASSETS = ["./", "./index.html", "./manifest.json"];
 
 self.addEventListener("install", function (event) {
@@ -21,17 +21,17 @@ self.addEventListener("activate", function (event) {
   self.clients.claim();
 });
 
+// Network first (so edits show up immediately), cache fallback for offline.
 self.addEventListener("fetch", function (event) {
   if (event.request.method !== "GET") return;
   event.respondWith(
-    caches.match(event.request).then(function (cached) {
-      if (cached) return cached;
-      return fetch(event.request).then(function (response) {
-        var copy = response.clone();
-        caches.open(CACHE).then(function (cache) { cache.put(event.request, copy); });
-        return response;
-      }).catch(function () {
-        return caches.match("./index.html");
+    fetch(event.request).then(function (response) {
+      var copy = response.clone();
+      caches.open(CACHE).then(function (cache) { cache.put(event.request, copy); });
+      return response;
+    }).catch(function () {
+      return caches.match(event.request).then(function (cached) {
+        return cached || caches.match("./index.html");
       });
     })
   );

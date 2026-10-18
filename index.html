@@ -20,13 +20,10 @@
 <p><label>Actual monthly food spend<br>
 <input type="number" id="actual" min="0" step="any" inputmode="decimal"></label></p>
 
-<p><label>Notes / math (one item per line, e.g. "Chicken: 2*180")<br>
-<textarea id="notes" rows="8" cols="60">Chicken 2 kg: 2*180
-Rice: 35
-Vegetables: 90+60
-Nuts for snacks: 120*3</textarea></label><br>
-Total from notes: <strong><output id="oNotes">-</output></strong>
-(<output id="oNotesLines">0</output> lines counted)</p>
+<p><label>Notes / math (one expression per line, e.g. 120*4)<br>
+<textarea id="notes" rows="8" cols="60"></textarea></label></p>
+<p><strong>Notes total:</strong> <output id="oNotes">0</output>
+ (<output id="oNotesLines">0</output> lines counted)</p>
 
 <p><label>Meals per day (0-10)<br>
 <input type="number" id="meals" value="2" min="0" max="10" step="1" inputmode="numeric"></label></p>
@@ -35,13 +32,13 @@ Total from notes: <strong><output id="oNotes">-</output></strong>
 <input type="number" id="snacks" value="3" min="0" max="10" step="1" inputmode="numeric"></label></p>
 
 <p><label>Snack cost as % of meal cost<br>
-<input type="number" id="snackPct" min="0" step="any" inputmode="decimal"></label></p>
+<input type="number" id="snackPct" value="30" min="0" step="any" inputmode="decimal"></label></p>
 
 <p><label>Target weight per snack (g)<br>
 <input type="number" id="snackG" value="50" min="0" step="any" inputmode="decimal"></label></p>
 
 <p><label>Target weight per meal, excluding snacks (g)<br>
-<input type="number" id="mealG" min="0" step="any" inputmode="decimal"></label></p>
+<input type="number" id="mealG" value="150" min="0" step="any" inputmode="decimal"></label></p>
 
 <p><label>Buffer (%)<br>
 <input type="number" id="buffer" value="15" min="0" max="100" step="any" inputmode="decimal"></label></p>
@@ -68,83 +65,38 @@ Total from notes: <strong><output id="oNotes">-</output></strong>
 <li><strong>Total monthly budget available for snacks:</strong> <output id="oSnackBudget">-</output></li>
 <li><strong>Actual vs. estimated spend:</strong> <output id="oDiff">-</output></li>
 <li><strong>Snack weight needed per month:</strong> <output id="oWeight">-</output></li>
+<li><strong>Meal weight needed per month:</strong> <output id="oMealWeight">-</output></li>
 <li><strong>Additional cost per meal, % change:</strong> <output id="oExtraPct">-</output></li>
 <li><strong>New cost per meal:</strong> <output id="oNewMeal">-</output></li>
 </ul>
 
-<h2>How it is calculated</h2>
-<ol>
-<li>Budget after gas and labor = estimated budget - monthly gas - (weekly labor x 4).</li>
-<li>Buffer reserve = that amount x buffer %. The rest is spendable.</li>
-<li>Cost per meal = spendable / (meals per month + snacks per month x snack %).</li>
-<li>Cost per snack = cost per meal x snack %.</li>
-<li>Snack budget = snacks per month x cost per snack.</li>
-</ol>
-
-<h2>How the notes total works</h2>
-<ul>
-<li>On each line, the last number or math expression is used (+ - * / x supported, no parentheses).</li>
-<li>Write quantities with an operator, like 2*180. Commas are treated as thousands separators.</li>
-<li>Example above: 360 + 35 + 150 + 360 = 905.</li>
-</ul>
+<h2>Full example (uses your current inputs)</h2>
+<pre id="example"></pre>
 
 <script>
 (function () {
-  var KEY = "mealPrepCalc.v1";
+  var KEY = "mealPrepCalc.v2";
   var ids = ["budget","actual","notes","meals","snacks","snackPct","snackG",
              "mealG","buffer","gas","labor","extra"];
-  var $ = function (id) { return document.getElementById(id); };
   var DAYS = 28, WEEKS = 4;
+  var $ = function (id) { return document.getElementById(id); };
 
   function num(id) {
     var v = parseFloat($(id).value);
     return isFinite(v) ? v : 0;
   }
-  function has(id) { return $(id).value.trim() !== "" && isFinite(parseFloat($(id).value)); }
+  function has(id) { return isFinite(parseFloat($(id).value)); }
+  function fmt(n, d) {
+    return isFinite(n) ? n.toLocaleString("es-MX", { maximumFractionDigits: d === undefined ? 2 : d }) : "-";
+  }
   function money(n) {
     return isFinite(n) ? n.toLocaleString("es-MX", { style: "currency", currency: "MXN" }) : "-";
   }
   function pct(n) {
-    return isFinite(n) ? (n > 0 ? "+" : "") + n.toLocaleString("es-MX", { maximumFractionDigits: 2 }) + " %" : "-";
+    return isFinite(n) ? (n > 0 ? "+" : "") + fmt(n) + " %" : "-";
   }
   function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
-  function set(id, text) { $(id).value = text; }
-
-  // Evaluate "120*2+30-10/2" without eval()
-  function evalExpr(s) {
-    var terms = s.split(/(?=[+-])/);
-    var total = 0;
-    terms.forEach(function (term) {
-      var sign = term.charAt(0) === "-" ? -1 : 1;
-      term = term.replace(/^[+-]/, "");
-      var parts = term.split(/([*\/])/);
-      var val = parseFloat(parts[0]);
-      for (var i = 1; i < parts.length; i += 2) {
-        var n = parseFloat(parts[i + 1]);
-        if (!isFinite(n)) continue;
-        if (parts[i] === "*") val *= n;
-        else if (n !== 0) val /= n;
-      }
-      if (isFinite(val)) total += sign * val;
-    });
-    return total;
-  }
-
-  function notesTotal() {
-    var re = /\d+(?:[.,]\d+)*(?:\s*[-+*\/x\u00d7]\s*\d+(?:[.,]\d+)*)*/g;
-    var total = 0, count = 0;
-    $("notes").value.split(/\r?\n/).forEach(function (line) {
-      var m = line.match(re);
-      if (!m) return;
-      var expr = m[m.length - 1]
-        .replace(/,/g, "")
-        .replace(/[x\u00d7]/g, "*")
-        .replace(/\s+/g, "");
-      var v = evalExpr(expr);
-      if (isFinite(v)) { total += v; count++; }
-    });
-    return { total: total, count: count };
-  }
+  function out(id, text) { $(id).textContent = text; }
 
   function save() {
     var data = {};
@@ -159,62 +111,103 @@ Total from notes: <strong><output id="oNotes">-</output></strong>
     } catch (e) {}
   }
 
+  // Sums the leading math expression of each line in the notes box.
+  function notesTotal() {
+    var total = 0, count = 0;
+    $("notes").value.split("\n").forEach(function (line) {
+      var m = line.replace(/,/g, "").match(/^[\s\d.+\-*\/()]+/);
+      if (!m) return;
+      var expr = m[0].trim();
+      if (!/\d/.test(expr)) return;
+      try {
+        var v = Function('"use strict"; return (' + expr + ");")();
+        if (isFinite(v)) { total += v; count++; }
+      } catch (e) {}
+    });
+    return { total: total, count: count };
+  }
+
   function calc() {
     var mealsDay = clamp(num("meals"), 0, 10);
     var snacksDay = clamp(num("snacks"), 0, 10);
     var M = mealsDay * DAYS;
     var S = snacksDay * DAYS;
     var p = num("snackPct") / 100;
+    var est = num("budget");
+    var gas = num("gas");
+    var labor = num("labor");
+    var bufPct = num("buffer");
+    var extra = num("extra");
 
-    var nt = notesTotal();
-    set("oNotes", money(nt.total));
-    set("oNotesLines", nt.count);
-
-    var afterFixed = num("budget") - num("gas") - num("labor") * WEEKS;
-    var reserve = afterFixed * (num("buffer") / 100);
+    var laborMonth = labor * WEEKS;
+    var afterFixed = est - gas - laborMonth;
+    var reserve = afterFixed * (bufPct / 100);
     var spendable = afterFixed - reserve;
-
     var units = M + S * p;
     var mealCost = units > 0 ? spendable / units : NaN;
     var snackCost = mealCost * p;
     var snackBudget = S * snackCost;
+    var snackKg = S * num("snackG") / 1000;
+    var mealKg = M * num("mealG") / 1000;
 
-    set("oMeals", M);
-    set("oSnacks", S);
-    set("oAfterFixed", money(afterFixed));
-    set("oBuffer", money(reserve));
-    set("oSpendable", money(spendable));
-    set("oMeal", money(mealCost));
-    set("oSnack", has("snackPct") ? money(snackCost) : "enter snack %");
-    set("oSnackBudget", has("snackPct") ? money(snackBudget) : "enter snack %");
+    var n = notesTotal();
+    out("oNotes", money(n.total));
+    out("oNotesLines", n.count);
 
-    var est = num("budget");
-    if (has("actual") && est > 0) {
-      set("oDiff", pct((num("actual") - est) / est * 100));
-    } else {
-      set("oDiff", "-");
-    }
+    out("oMeals", M);
+    out("oSnacks", S);
+    out("oAfterFixed", money(afterFixed));
+    out("oBuffer", money(reserve));
+    out("oSpendable", money(spendable));
+    out("oMeal", money(mealCost));
+    out("oSnack", money(snackCost));
+    out("oSnackBudget", money(snackBudget));
 
-    var kg = S * num("snackG") / 1000;
-    set("oWeight", S + " snacks x " + num("snackG") + " g = " +
-        kg.toLocaleString("es-MX", { maximumFractionDigits: 3 }) + " kg");
+    var diff = NaN;
+    if (has("actual") && est > 0) diff = (num("actual") - est) / est * 100;
+    out("oDiff", pct(diff));
 
-    var extra = num("extra");
-    if (isFinite(mealCost) && mealCost > 0) {
-      set("oExtraPct", pct(extra / mealCost * 100));
-      set("oNewMeal", money(mealCost + extra));
-    } else {
-      set("oExtraPct", "-");
-      set("oNewMeal", "-");
-    }
+    out("oWeight", S + " snacks x " + num("snackG") + " g = " + fmt(snackKg, 3) + " kg");
+    out("oMealWeight", M + " meals x " + num("mealG") + " g = " + fmt(mealKg, 3) + " kg");
+
+    var extraPct = mealCost > 0 ? extra / mealCost * 100 : NaN;
+    var newMeal = mealCost + extra;
+    out("oExtraPct", pct(extraPct));
+    out("oNewMeal", money(newMeal));
+
+    var L = [];
+    L.push("Meals per month  = " + mealsDay + " x " + DAYS + " = " + M);
+    L.push("Snacks per month = " + snacksDay + " x " + DAYS + " = " + S);
+    L.push("Labor per month  = " + money(labor) + " x " + WEEKS + " = " + money(laborMonth));
+    L.push("Budget after gas and labor = " + money(est) + " - " + money(gas) +
+           " - " + money(laborMonth) + " = " + money(afterFixed));
+    L.push("Buffer reserve = " + money(afterFixed) + " x " + fmt(bufPct) + "% = " + money(reserve));
+    L.push("Spendable = " + money(afterFixed) + " - " + money(reserve) + " = " + money(spendable));
+    L.push("Meal-equivalents = " + M + " + (" + S + " x " + fmt(p, 4) + ") = " + fmt(units, 4));
+    L.push("Cost per meal = " + money(spendable) + " / " + fmt(units, 4) + " = " + money(mealCost));
+    L.push("Cost per snack = " + money(mealCost) + " x " + fmt(p, 4) + " = " + money(snackCost));
+    L.push("Snack budget = " + S + " x " + money(snackCost) + " = " + money(snackBudget));
+    L.push("Snack weight = " + S + " x " + num("snackG") + " g = " + fmt(snackKg, 3) + " kg");
+    L.push("Meal weight  = " + M + " x " + num("mealG") + " g = " + fmt(mealKg, 3) + " kg");
+    L.push("Actual vs estimated = " + (has("actual")
+      ? "(" + money(num("actual")) + " - " + money(est) + ") / " + money(est) + " = " + pct(diff)
+      : "enter actual spend"));
+    L.push("Additional cost effect = " + money(extra) + " / " + money(mealCost) +
+           " = " + pct(extraPct) + ", new cost per meal = " + money(newMeal));
+    $("example").textContent = L.join("\n");
   }
 
   function update() { calc(); save(); }
 
   load();
   calc();
-  $("f").addEventListener("input", update);
-  $("f").addEventListener("change", update);
+
+  ids.forEach(function (id) {
+    var el = $(id);
+    el.addEventListener("input", update);
+    el.addEventListener("change", update);
+    el.addEventListener("keyup", update);
+  });
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", function () {
