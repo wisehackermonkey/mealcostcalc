@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,8 +20,13 @@
 <p><label>Actual monthly food spend<br>
 <input type="number" id="actual" min="0" step="any" inputmode="decimal"></label></p>
 
-<p><label>Notes / math<br>
-<textarea id="notes" rows="15" cols="60"></textarea></label></p>
+<p><label>Notes / math (one item per line, e.g. "Chicken: 2*180")<br>
+<textarea id="notes" rows="8" cols="60">Chicken 2 kg: 2*180
+Rice: 35
+Vegetables: 90+60
+Nuts for snacks: 120*3</textarea></label><br>
+Total from notes: <strong><output id="oNotes">-</output></strong>
+(<output id="oNotesLines">0</output> lines counted)</p>
 
 <p><label>Meals per day (0-10)<br>
 <input type="number" id="meals" value="2" min="0" max="10" step="1" inputmode="numeric"></label></p>
@@ -75,6 +81,13 @@
 <li>Snack budget = snacks per month x cost per snack.</li>
 </ol>
 
+<h2>How the notes total works</h2>
+<ul>
+<li>On each line, the last number or math expression is used (+ - * / x supported, no parentheses).</li>
+<li>Write quantities with an operator, like 2*180. Commas are treated as thousands separators.</li>
+<li>Example above: 360 + 35 + 150 + 360 = 905.</li>
+</ul>
+
 <script>
 (function () {
   var KEY = "mealPrepCalc.v1";
@@ -97,6 +110,42 @@
   function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
   function set(id, text) { $(id).value = text; }
 
+  // Evaluate "120*2+30-10/2" without eval()
+  function evalExpr(s) {
+    var terms = s.split(/(?=[+-])/);
+    var total = 0;
+    terms.forEach(function (term) {
+      var sign = term.charAt(0) === "-" ? -1 : 1;
+      term = term.replace(/^[+-]/, "");
+      var parts = term.split(/([*\/])/);
+      var val = parseFloat(parts[0]);
+      for (var i = 1; i < parts.length; i += 2) {
+        var n = parseFloat(parts[i + 1]);
+        if (!isFinite(n)) continue;
+        if (parts[i] === "*") val *= n;
+        else if (n !== 0) val /= n;
+      }
+      if (isFinite(val)) total += sign * val;
+    });
+    return total;
+  }
+
+  function notesTotal() {
+    var re = /\d+(?:[.,]\d+)*(?:\s*[-+*\/x\u00d7]\s*\d+(?:[.,]\d+)*)*/g;
+    var total = 0, count = 0;
+    $("notes").value.split(/\r?\n/).forEach(function (line) {
+      var m = line.match(re);
+      if (!m) return;
+      var expr = m[m.length - 1]
+        .replace(/,/g, "")
+        .replace(/[x\u00d7]/g, "*")
+        .replace(/\s+/g, "");
+      var v = evalExpr(expr);
+      if (isFinite(v)) { total += v; count++; }
+    });
+    return { total: total, count: count };
+  }
+
   function save() {
     var data = {};
     ids.forEach(function (id) { data[id] = $(id).value; });
@@ -116,6 +165,10 @@
     var M = mealsDay * DAYS;
     var S = snacksDay * DAYS;
     var p = num("snackPct") / 100;
+
+    var nt = notesTotal();
+    set("oNotes", money(nt.total));
+    set("oNotesLines", nt.count);
 
     var afterFixed = num("budget") - num("gas") - num("labor") * WEEKS;
     var reserve = afterFixed * (num("buffer") / 100);
