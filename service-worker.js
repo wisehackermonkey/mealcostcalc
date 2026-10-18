@@ -1,5 +1,5 @@
 // service-worker.js
-var CACHE = "mealprep-calc-v2";
+var CACHE = "mealprep-calc-v3";
 var ASSETS = ["./", "./index.html", "./manifest.json"];
 
 self.addEventListener("install", function (event) {

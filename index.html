@@ -12,6 +12,61 @@
 <h1>Monthly Meal-Prep Cost Calculator</h1>
 <p>Assumes 4 weeks per month and 7 days per week (28 days). All amounts are in MXN.</p>
 
+<h2>Results</h2>
+
+<h1>Cost per meal: <output id="oMeal">-</output></h1>
+<h1>Cost per snack: <output id="oSnack">-</output></h1>
+
+<p>Food budget (total): <output id="oBudget">-</output></p>
+<p><strong>Actual vs. estimated spend:</strong> <output id="oDiff">-</output></p>
+<hr>
+<p>Actual monthly food spend (total): <output id="oActual">-</output></p>
+<hr>
+
+<p>Buffer reserve: <output id="oBuffer">-</output></p>
+<p>Food budget after gas and labor: <output id="oAfterFixed">-</output></p>
+<p>Spendable on meals and snacks: <output id="oSpendable">-</output></p>
+
+<p><strong>Spendable on meals:</strong> <output id="oMealBudget">-</output></p>
+<ul>
+<li>Pork $ available: <output id="oPorkMoney">-</output></li>
+<li>Chicken $ available: <output id="oChickenMoney">-</output></li>
+<li>Beef $ available: <output id="oBeefMoney">-</output></li>
+</ul>
+
+<p><strong>Spendable on snacks:</strong> <output id="oSnackSpend">-</output></p>
+<p><strong>Total monthly budget available for snacks:</strong> <output id="oSnackBudget">-</output></p>
+
+<p>Snack weight needed per month: <output id="oWeight">-</output></p>
+<p>Meal weight needed per month: <output id="oMealWeight">-</output></p>
+
+<h2>Meat to buy (kg)</h2>
+<p><output id="oCookNote">-</output></p>
+<table border="1" cellpadding="4">
+<tr><th>Meat</th><th>Share of meat</th><th>Cooked kg needed</th><th>Kg to buy</th><th>Cost to buy</th><th>$ available</th></tr>
+<tr><td>Chicken</td><td><output id="oChShare">-</output></td><td><output id="oChCooked">-</output></td><td><output id="oChBuy">-</output></td><td><output id="oChCost">-</output></td><td><output id="oChMoney">-</output></td></tr>
+<tr><td>Pork</td><td><output id="oPoShare">-</output></td><td><output id="oPoCooked">-</output></td><td><output id="oPoBuy">-</output></td><td><output id="oPoCost">-</output></td><td><output id="oPoMoney">-</output></td></tr>
+<tr><td>Beef</td><td><output id="oBeShare">-</output></td><td><output id="oBeCooked">-</output></td><td><output id="oBeBuy">-</output></td><td><output id="oBeCost">-</output></td><td><output id="oBeMoney">-</output></td></tr>
+<tr><th>Total</th><th>-</th><th><output id="oTotCooked">-</output></th><th><output id="oTotBuy">-</output></th><th><output id="oTotCost">-</output></th><th><output id="oTotMoney">-</output></th></tr>
+</table>
+
+<h2>Additional cost per meal</h2>
+<table border="1" cellpadding="6">
+<tr>
+<th>Additional cost per meal (MXN)</th>
+<th>Additional cost per meal, % change</th>
+<th>New cost per meal</th>
+</tr>
+<tr>
+<td><input type="number" id="extra" min="0" step="any" inputmode="decimal"></td>
+<td><output id="oExtraPct">-</output></td>
+<td><output id="oNewMeal">-</output></td>
+</tr>
+</table>
+
+<p>Meals per month: <output id="oMeals">-</output></p>
+<p>Snacks per month: <output id="oSnacks">-</output></p>
+
 <h2>Inputs</h2>
 <form id="f" onsubmit="return false">
 <p><label>Estimated monthly food budget<br>
@@ -29,7 +84,7 @@
 <input type="number" id="meals" value="2" min="0" max="10" step="1" inputmode="numeric"></label></p>
 
 <p><label>Snacks per day (0-10)<br>
-<input type="number" id="snacks" value="3" min="0" max="10" step="1" inputmode="numeric"></label></p>
+<input type="number" id="snacks" value="2" min="0" max="10" step="1" inputmode="numeric"></label></p>
 
 <p><label>Snack cost as % of meal cost<br>
 <input type="number" id="snackPct" value="30" min="0" step="any" inputmode="decimal"></label></p>
@@ -47,37 +102,47 @@
 <input type="number" id="gas" value="500" min="0" step="any" inputmode="decimal"></label></p>
 
 <p><label>Weekly meal-prep labor cost<br>
-<input type="number" id="labor" value="1000" min="0" step="any" inputmode="decimal"></label></p>
+<input type="number" id="labor" value="0" min="0" step="any" inputmode="decimal"></label></p>
 
-<p><label>Additional cost per meal<br>
-<input type="number" id="extra" min="0" step="any" inputmode="decimal"></label></p>
+<h3>Meat</h3>
+<p><label><input type="checkbox" id="cook"> Cook at home (adds the cooking-loss % below to the kg you buy)</label></p>
+
+<h3>Meal percentage breakdown (meat weight needed to buy)</h3>
+<p>Shares are scaled so they add up to 100%.</p>
+<p><label>Chicken %<br>
+<input type="number" id="chPct" value="50" min="0" step="any" inputmode="decimal"></label></p>
+<p><label>Pork %<br>
+<input type="number" id="poPct" value="50" min="0" step="any" inputmode="decimal"></label></p>
+<p><label>Beef %<br>
+<input type="number" id="bePct" value="25" min="0" step="any" inputmode="decimal"></label></p>
+
+<h3>Meat price per kg (MXN, highest price)</h3>
+<p><label>Chicken price per kg<br>
+<input type="number" id="chPrice" value="189" min="0" step="any" inputmode="decimal"></label></p>
+<p><label>Pork price per kg<br>
+<input type="number" id="poPrice" value="119" min="0" step="any" inputmode="decimal"></label></p>
+<p><label>Beef price per kg<br>
+<input type="number" id="bePrice" value="229.90" min="0" step="any" inputmode="decimal"></label></p>
+
+<h3>Extra to buy to cover cooking loss (%)</h3>
+<p><label>Chicken extra %<br>
+<input type="number" id="chLoss" value="40" min="0" step="any" inputmode="decimal"></label></p>
+<p><label>Pork extra %<br>
+<input type="number" id="poLoss" value="50" min="0" step="any" inputmode="decimal"></label></p>
+<p><label>Beef extra %<br>
+<input type="number" id="beLoss" value="40" min="0" step="any" inputmode="decimal"></label></p>
 </form>
-
-<h2>Outputs</h2>
-<ul>
-<li>Meals per month: <output id="oMeals">-</output></li>
-<li>Snacks per month: <output id="oSnacks">-</output></li>
-<li>Food budget after gas and labor: <output id="oAfterFixed">-</output></li>
-<li>Buffer reserve: <output id="oBuffer">-</output></li>
-<li>Spendable on meals and snacks: <output id="oSpendable">-</output></li>
-<li><strong>Cost per meal:</strong> <output id="oMeal">-</output></li>
-<li><strong>Cost per snack:</strong> <output id="oSnack">-</output></li>
-<li><strong>Total monthly budget available for snacks:</strong> <output id="oSnackBudget">-</output></li>
-<li><strong>Actual vs. estimated spend:</strong> <output id="oDiff">-</output></li>
-<li><strong>Snack weight needed per month:</strong> <output id="oWeight">-</output></li>
-<li><strong>Meal weight needed per month:</strong> <output id="oMealWeight">-</output></li>
-<li><strong>Additional cost per meal, % change:</strong> <output id="oExtraPct">-</output></li>
-<li><strong>New cost per meal:</strong> <output id="oNewMeal">-</output></li>
-</ul>
 
 <h2>Full example (uses your current inputs)</h2>
 <pre id="example"></pre>
 
 <script>
 (function () {
-  var KEY = "mealPrepCalc.v2";
+  var KEY = "mealPrepCalc.v3";
   var ids = ["budget","actual","notes","meals","snacks","snackPct","snackG",
-             "mealG","buffer","gas","labor","extra"];
+             "mealG","buffer","gas","labor","extra",
+             "chPct","poPct","bePct","chPrice","poPrice","bePrice",
+             "chLoss","poLoss","beLoss"];
   var DAYS = 28, WEEKS = 4;
   var $ = function (id) { return document.getElementById(id); };
 
@@ -99,7 +164,7 @@
   function out(id, text) { $(id).textContent = text; }
 
   function save() {
-    var data = {};
+    var data = { cook: $("cook").checked };
     ids.forEach(function (id) { data[id] = $(id).value; });
     try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {}
   }
@@ -107,7 +172,10 @@
   function load() {
     try {
       var data = JSON.parse(localStorage.getItem(KEY) || "null");
-      if (data) ids.forEach(function (id) { if (id in data) $(id).value = data[id]; });
+      if (data) {
+        ids.forEach(function (id) { if (id in data) $(id).value = data[id]; });
+        $("cook").checked = !!data.cook;
+      }
     } catch (e) {}
   }
 
@@ -127,6 +195,12 @@
     return { total: total, count: count };
   }
 
+  var MEATS = [
+    { key: "ch", name: "Chicken" },
+    { key: "po", name: "Pork" },
+    { key: "be", name: "Beef" }
+  ];
+
   function calc() {
     var mealsDay = clamp(num("meals"), 0, 10);
     var snacksDay = clamp(num("snacks"), 0, 10);
@@ -138,6 +212,7 @@
     var labor = num("labor");
     var bufPct = num("buffer");
     var extra = num("extra");
+    var cook = $("cook").checked;
 
     var laborMonth = labor * WEEKS;
     var afterFixed = est - gas - laborMonth;
@@ -147,6 +222,7 @@
     var mealCost = units > 0 ? spendable / units : NaN;
     var snackCost = mealCost * p;
     var snackBudget = S * snackCost;
+    var mealBudget = M * mealCost;
     var snackKg = S * num("snackG") / 1000;
     var mealKg = M * num("mealG") / 1000;
 
@@ -154,27 +230,69 @@
     out("oNotes", money(n.total));
     out("oNotesLines", n.count);
 
-    out("oMeals", M);
-    out("oSnacks", S);
-    out("oAfterFixed", money(afterFixed));
-    out("oBuffer", money(reserve));
-    out("oSpendable", money(spendable));
+    // Top results
     out("oMeal", money(mealCost));
     out("oSnack", money(snackCost));
-    out("oSnackBudget", money(snackBudget));
-
+    out("oBudget", money(est));
     var diff = NaN;
     if (has("actual") && est > 0) diff = (num("actual") - est) / est * 100;
     out("oDiff", pct(diff));
-
+    out("oActual", has("actual") ? money(num("actual")) : "-");
+    out("oBuffer", money(reserve));
+    out("oAfterFixed", money(afterFixed));
+    out("oSpendable", money(spendable));
+    out("oMealBudget", money(mealBudget));
+    out("oSnackSpend", money(snackBudget));
+    out("oSnackBudget", money(snackBudget));
     out("oWeight", S + " snacks x " + num("snackG") + " g = " + fmt(snackKg, 3) + " kg");
     out("oMealWeight", M + " meals x " + num("mealG") + " g = " + fmt(mealKg, 3) + " kg");
 
+    // Meat breakdown
+    var totalPct = num("chPct") + num("poPct") + num("bePct");
+    var sumCooked = 0, sumBuy = 0, sumCost = 0, sumMoney = 0;
+    var meatLines = [];
+    var res = {};
+    MEATS.forEach(function (m) {
+      var share = totalPct > 0 ? num(m.key + "Pct") / totalPct : 0;
+      var cooked = mealKg * share;
+      var loss = num(m.key + "Loss") / 100;
+      var buy = cook ? cooked * (1 + loss) : cooked;
+      var cost = buy * num(m.key + "Price");
+      var money$ = mealBudget * share;
+      res[m.key] = { money: money$ };
+      sumCooked += cooked; sumBuy += buy; sumCost += cost; sumMoney += money$;
+      var K = m.key.charAt(0).toUpperCase() + m.key.slice(1);
+      out("o" + K + "Share", fmt(share * 100, 1) + " %");
+      out("o" + K + "Cooked", fmt(cooked, 3) + " kg");
+      out("o" + K + "Buy", fmt(buy, 3) + " kg");
+      out("o" + K + "Cost", money(cost));
+      out("o" + K + "Money", money(money$));
+      meatLines.push(m.name + ": share " + fmt(share * 100, 1) + "% -> cooked " +
+        fmt(mealKg, 3) + " x " + fmt(share, 4) + " = " + fmt(cooked, 3) + " kg" +
+        (cook ? ", buy " + fmt(cooked, 3) + " x " + fmt(1 + loss, 2) + " = " : ", buy = ") +
+        fmt(buy, 3) + " kg x " + money(num(m.key + "Price")) + " = " + money(cost));
+    });
+    out("oTotCooked", fmt(sumCooked, 3) + " kg");
+    out("oTotBuy", fmt(sumBuy, 3) + " kg");
+    out("oTotCost", money(sumCost));
+    out("oTotMoney", money(sumMoney));
+    out("oPorkMoney", money(res.po.money));
+    out("oChickenMoney", money(res.ch.money));
+    out("oBeefMoney", money(res.be.money));
+    out("oCookNote", cook
+      ? "Cook at home is ON: kg to buy includes the cooking-loss %."
+      : "Cook at home is OFF: kg to buy equals cooked kg needed.");
+
+    // Additional cost
     var extraPct = mealCost > 0 ? extra / mealCost * 100 : NaN;
     var newMeal = mealCost + extra;
     out("oExtraPct", pct(extraPct));
     out("oNewMeal", money(newMeal));
 
+    out("oMeals", M);
+    out("oSnacks", S);
+
+    // Full example
     var L = [];
     L.push("Meals per month  = " + mealsDay + " x " + DAYS + " = " + M);
     L.push("Snacks per month = " + snacksDay + " x " + DAYS + " = " + S);
@@ -187,8 +305,12 @@
     L.push("Cost per meal = " + money(spendable) + " / " + fmt(units, 4) + " = " + money(mealCost));
     L.push("Cost per snack = " + money(mealCost) + " x " + fmt(p, 4) + " = " + money(snackCost));
     L.push("Snack budget = " + S + " x " + money(snackCost) + " = " + money(snackBudget));
+    L.push("Meal budget  = " + M + " x " + money(mealCost) + " = " + money(mealBudget));
     L.push("Snack weight = " + S + " x " + num("snackG") + " g = " + fmt(snackKg, 3) + " kg");
     L.push("Meal weight  = " + M + " x " + num("mealG") + " g = " + fmt(mealKg, 3) + " kg");
+    L.push("Cook at home = " + (cook ? "ON" : "OFF"));
+    meatLines.forEach(function (l) { L.push(l); });
+    L.push("Total kg to buy = " + fmt(sumBuy, 3) + " kg, total cost = " + money(sumCost));
     L.push("Actual vs estimated = " + (has("actual")
       ? "(" + money(num("actual")) + " - " + money(est) + ") / " + money(est) + " = " + pct(diff)
       : "enter actual spend"));
@@ -202,7 +324,7 @@
   load();
   calc();
 
-  ids.forEach(function (id) {
+  ids.concat(["cook"]).forEach(function (id) {
     var el = $(id);
     el.addEventListener("input", update);
     el.addEventListener("change", update);
