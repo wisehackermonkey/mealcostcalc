@@ -1,9 +1,174 @@
 <!DOCTYPE html>
-  <html>
-  <head>
-    <title>mealcostcalc</title>
-  </head>
-  <body>
-    <h1>mealcostcalc</h1>
-  </body>
-  </html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meal-Prep Cost Calculator (MXN)</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<h1>Monthly Meal-Prep Cost Calculator</h1>
+<p>Assumes 4 weeks per month and 7 days per week (28 days). All amounts are in MXN.</p>
+
+<h2>Inputs</h2>
+<form id="f" onsubmit="return false">
+<p><label>Estimated monthly food budget<br>
+<input type="number" id="budget" value="5000" min="0" step="any" inputmode="decimal"></label></p>
+
+<p><label>Actual monthly food spend<br>
+<input type="number" id="actual" min="0" step="any" inputmode="decimal"></label></p>
+
+<p><label>Notes / math<br>
+<textarea id="notes" rows="15" cols="60"></textarea></label></p>
+
+<p><label>Meals per day (0-10)<br>
+<input type="number" id="meals" value="2" min="0" max="10" step="1" inputmode="numeric"></label></p>
+
+<p><label>Snacks per day (0-10)<br>
+<input type="number" id="snacks" value="3" min="0" max="10" step="1" inputmode="numeric"></label></p>
+
+<p><label>Snack cost as % of meal cost<br>
+<input type="number" id="snackPct" min="0" step="any" inputmode="decimal"></label></p>
+
+<p><label>Target weight per snack (g)<br>
+<input type="number" id="snackG" value="50" min="0" step="any" inputmode="decimal"></label></p>
+
+<p><label>Target weight per meal, excluding snacks (g)<br>
+<input type="number" id="mealG" min="0" step="any" inputmode="decimal"></label></p>
+
+<p><label>Buffer (%)<br>
+<input type="number" id="buffer" value="15" min="0" max="100" step="any" inputmode="decimal"></label></p>
+
+<p><label>Monthly gas / transport cost<br>
+<input type="number" id="gas" value="500" min="0" step="any" inputmode="decimal"></label></p>
+
+<p><label>Weekly meal-prep labor cost<br>
+<input type="number" id="labor" value="1000" min="0" step="any" inputmode="decimal"></label></p>
+
+<p><label>Additional cost per meal<br>
+<input type="number" id="extra" min="0" step="any" inputmode="decimal"></label></p>
+</form>
+
+<h2>Outputs</h2>
+<ul>
+<li>Meals per month: <output id="oMeals">-</output></li>
+<li>Snacks per month: <output id="oSnacks">-</output></li>
+<li>Food budget after gas and labor: <output id="oAfterFixed">-</output></li>
+<li>Buffer reserve: <output id="oBuffer">-</output></li>
+<li>Spendable on meals and snacks: <output id="oSpendable">-</output></li>
+<li><strong>Cost per meal:</strong> <output id="oMeal">-</output></li>
+<li><strong>Cost per snack:</strong> <output id="oSnack">-</output></li>
+<li><strong>Total monthly budget available for snacks:</strong> <output id="oSnackBudget">-</output></li>
+<li><strong>Actual vs. estimated spend:</strong> <output id="oDiff">-</output></li>
+<li><strong>Snack weight needed per month:</strong> <output id="oWeight">-</output></li>
+<li><strong>Additional cost per meal, % change:</strong> <output id="oExtraPct">-</output></li>
+<li><strong>New cost per meal:</strong> <output id="oNewMeal">-</output></li>
+</ul>
+
+<h2>How it is calculated</h2>
+<ol>
+<li>Budget after gas and labor = estimated budget - monthly gas - (weekly labor x 4).</li>
+<li>Buffer reserve = that amount x buffer %. The rest is spendable.</li>
+<li>Cost per meal = spendable / (meals per month + snacks per month x snack %).</li>
+<li>Cost per snack = cost per meal x snack %.</li>
+<li>Snack budget = snacks per month x cost per snack.</li>
+</ol>
+
+<script>
+(function () {
+  var KEY = "mealPrepCalc.v1";
+  var ids = ["budget","actual","notes","meals","snacks","snackPct","snackG",
+             "mealG","buffer","gas","labor","extra"];
+  var $ = function (id) { return document.getElementById(id); };
+  var DAYS = 28, WEEKS = 4;
+
+  function num(id) {
+    var v = parseFloat($(id).value);
+    return isFinite(v) ? v : 0;
+  }
+  function has(id) { return $(id).value.trim() !== "" && isFinite(parseFloat($(id).value)); }
+  function money(n) {
+    return isFinite(n) ? n.toLocaleString("es-MX", { style: "currency", currency: "MXN" }) : "-";
+  }
+  function pct(n) {
+    return isFinite(n) ? (n > 0 ? "+" : "") + n.toLocaleString("es-MX", { maximumFractionDigits: 2 }) + " %" : "-";
+  }
+  function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
+  function set(id, text) { $(id).value = text; }
+
+  function save() {
+    var data = {};
+    ids.forEach(function (id) { data[id] = $(id).value; });
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {}
+  }
+
+  function load() {
+    try {
+      var data = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (data) ids.forEach(function (id) { if (id in data) $(id).value = data[id]; });
+    } catch (e) {}
+  }
+
+  function calc() {
+    var mealsDay = clamp(num("meals"), 0, 10);
+    var snacksDay = clamp(num("snacks"), 0, 10);
+    var M = mealsDay * DAYS;
+    var S = snacksDay * DAYS;
+    var p = num("snackPct") / 100;
+
+    var afterFixed = num("budget") - num("gas") - num("labor") * WEEKS;
+    var reserve = afterFixed * (num("buffer") / 100);
+    var spendable = afterFixed - reserve;
+
+    var units = M + S * p;
+    var mealCost = units > 0 ? spendable / units : NaN;
+    var snackCost = mealCost * p;
+    var snackBudget = S * snackCost;
+
+    set("oMeals", M);
+    set("oSnacks", S);
+    set("oAfterFixed", money(afterFixed));
+    set("oBuffer", money(reserve));
+    set("oSpendable", money(spendable));
+    set("oMeal", money(mealCost));
+    set("oSnack", has("snackPct") ? money(snackCost) : "enter snack %");
+    set("oSnackBudget", has("snackPct") ? money(snackBudget) : "enter snack %");
+
+    var est = num("budget");
+    if (has("actual") && est > 0) {
+      set("oDiff", pct((num("actual") - est) / est * 100));
+    } else {
+      set("oDiff", "-");
+    }
+
+    var kg = S * num("snackG") / 1000;
+    set("oWeight", S + " snacks x " + num("snackG") + " g = " +
+        kg.toLocaleString("es-MX", { maximumFractionDigits: 3 }) + " kg");
+
+    var extra = num("extra");
+    if (isFinite(mealCost) && mealCost > 0) {
+      set("oExtraPct", pct(extra / mealCost * 100));
+      set("oNewMeal", money(mealCost + extra));
+    } else {
+      set("oExtraPct", "-");
+      set("oNewMeal", "-");
+    }
+  }
+
+  function update() { calc(); save(); }
+
+  load();
+  calc();
+  $("f").addEventListener("input", update);
+  $("f").addEventListener("change", update);
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("service-worker.js").catch(function () {});
+    });
+  }
+})();
+</script>
+</body>
+</html>
