@@ -69,68 +69,84 @@
 
 <h2>Inputs</h2>
 <form id="f" onsubmit="return false">
-<p><label>Estimated monthly food budget<br>
-<input type="number" id="budget" value="5000" min="0" step="any" inputmode="decimal"></label></p>
 
-<p><label>Actual monthly food spend<br>
-<input type="number" id="actual" min="0" step="any" inputmode="decimal"></label></p>
+<table cellpadding="0" cellspacing="0">
+<tr><td><input type="number" id="budget" value="5000" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="budget">Estimated monthly food budget</label></td></tr>
 
-<p><label>Notes / math (one expression per line, e.g. 120*4)<br>
-<textarea id="notes" rows="8" cols="60"></textarea></label></p>
+<tr><td><input type="number" id="actual" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="actual">Actual monthly food spend</label></td></tr>
+
+<tr><td><input type="number" id="meals" value="2" min="0" max="10" step="1" inputmode="numeric"></td>
+<td>&nbsp;<label for="meals">Meals per day (0-10)</label></td></tr>
+
+<tr><td><input type="number" id="snacks" value="2" min="0" max="10" step="1" inputmode="numeric"></td>
+<td>&nbsp;<label for="snacks">Snacks per day (0-10)</label></td></tr>
+
+<tr><td><input type="number" id="snackPct" value="30" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="snackPct">Snack cost as % of meal cost</label></td></tr>
+
+<tr><td><input type="number" id="snackG" value="50" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="snackG">Target weight per snack (g)</label></td></tr>
+
+<tr><td><input type="number" id="mealG" value="150" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="mealG">Target weight per meal, excluding snacks (g)</label></td></tr>
+
+<tr><td><input type="number" id="buffer" value="15" min="0" max="100" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="buffer">Buffer (%)</label></td></tr>
+
+<tr><td><input type="number" id="gas" value="500" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="gas">Monthly gas / transport cost</label></td></tr>
+
+<tr><td><input type="number" id="labor" value="1000" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="labor">Weekly meal-prep labor cost</label></td></tr>
+
+<tr><td colspan="2"><h3>Meat</h3></td></tr>
+
+<tr><td><input type="checkbox" id="cook"></td>
+<td>&nbsp;<label for="cook">Cook at home (adds the cooking-loss % below to the kg you buy)</label></td></tr>
+
+<tr><td colspan="2"><h3>Meal percentage breakdown (meat weight needed to buy)</h3>
+<small>Shares are scaled so they add up to 100%.</small></td></tr>
+
+<tr><td><input type="number" id="chPct" value="50" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="chPct">Chicken %</label></td></tr>
+
+<tr><td><input type="number" id="poPct" value="50" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="poPct">Pork %</label></td></tr>
+
+<tr><td><input type="number" id="bePct" value="25" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="bePct">Beef %</label></td></tr>
+
+<tr><td colspan="2"><h3>Meat price per kg (MXN, highest price)</h3></td></tr>
+
+<tr><td><input type="number" id="chPrice" value="189" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="chPrice">Chicken price per kg</label></td></tr>
+
+<tr><td><input type="number" id="poPrice" value="119" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="poPrice">Pork price per kg</label></td></tr>
+
+<tr><td><input type="number" id="bePrice" value="229.90" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="bePrice">Beef price per kg</label></td></tr>
+
+<tr><td colspan="2"><h3>Extra to buy to cover cooking loss (%)</h3></td></tr>
+
+<tr><td><input type="number" id="chLoss" value="40" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="chLoss">Chicken extra %</label></td></tr>
+
+<tr><td><input type="number" id="poLoss" value="50" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="poLoss">Pork extra %</label></td></tr>
+
+<tr><td><input type="number" id="beLoss" value="40" min="0" step="any" inputmode="decimal"></td>
+<td>&nbsp;<label for="beLoss">Beef extra %</label></td></tr>
+</table>
+
+<h3>Notes / math</h3>
+<p><label for="notes">One expression per line, e.g. 120*4</label><br>
+<textarea id="notes" rows="8" cols="60"></textarea></p>
 <p><strong>Notes total:</strong> <output id="oNotes">0</output>
  (<output id="oNotesLines">0</output> lines counted)</p>
 
-<p><label>Meals per day (0-10)<br>
-<input type="number" id="meals" value="2" min="0" max="10" step="1" inputmode="numeric"></label></p>
-
-<p><label>Snacks per day (0-10)<br>
-<input type="number" id="snacks" value="2" min="0" max="10" step="1" inputmode="numeric"></label></p>
-
-<p><label>Snack cost as % of meal cost<br>
-<input type="number" id="snackPct" value="30" min="0" step="any" inputmode="decimal"></label></p>
-
-<p><label>Target weight per snack (g)<br>
-<input type="number" id="snackG" value="50" min="0" step="any" inputmode="decimal"></label></p>
-
-<p><label>Target weight per meal, excluding snacks (g)<br>
-<input type="number" id="mealG" value="150" min="0" step="any" inputmode="decimal"></label></p>
-
-<p><label>Buffer (%)<br>
-<input type="number" id="buffer" value="15" min="0" max="100" step="any" inputmode="decimal"></label></p>
-
-<p><label>Monthly gas / transport cost<br>
-<input type="number" id="gas" value="500" min="0" step="any" inputmode="decimal"></label></p>
-
-<p><label>Weekly meal-prep labor cost<br>
-<input type="number" id="labor" value="0" min="0" step="any" inputmode="decimal"></label></p>
-
-<h3>Meat</h3>
-<p><label><input type="checkbox" id="cook"> Cook at home (adds the cooking-loss % below to the kg you buy)</label></p>
-
-<h3>Meal percentage breakdown (meat weight needed to buy)</h3>
-<p>Shares are scaled so they add up to 100%.</p>
-<p><label>Chicken %<br>
-<input type="number" id="chPct" value="50" min="0" step="any" inputmode="decimal"></label></p>
-<p><label>Pork %<br>
-<input type="number" id="poPct" value="50" min="0" step="any" inputmode="decimal"></label></p>
-<p><label>Beef %<br>
-<input type="number" id="bePct" value="25" min="0" step="any" inputmode="decimal"></label></p>
-
-<h3>Meat price per kg (MXN, highest price)</h3>
-<p><label>Chicken price per kg<br>
-<input type="number" id="chPrice" value="189" min="0" step="any" inputmode="decimal"></label></p>
-<p><label>Pork price per kg<br>
-<input type="number" id="poPrice" value="119" min="0" step="any" inputmode="decimal"></label></p>
-<p><label>Beef price per kg<br>
-<input type="number" id="bePrice" value="229.90" min="0" step="any" inputmode="decimal"></label></p>
-
-<h3>Extra to buy to cover cooking loss (%)</h3>
-<p><label>Chicken extra %<br>
-<input type="number" id="chLoss" value="40" min="0" step="any" inputmode="decimal"></label></p>
-<p><label>Pork extra %<br>
-<input type="number" id="poLoss" value="50" min="0" step="any" inputmode="decimal"></label></p>
-<p><label>Beef extra %<br>
-<input type="number" id="beLoss" value="40" min="0" step="any" inputmode="decimal"></label></p>
 </form>
 
 <h2>Full example (uses your current inputs)</h2>
@@ -230,7 +246,6 @@
     out("oNotes", money(n.total));
     out("oNotesLines", n.count);
 
-    // Top results
     out("oMeal", money(mealCost));
     out("oSnack", money(snackCost));
     out("oBudget", money(est));
@@ -247,7 +262,6 @@
     out("oWeight", S + " snacks x " + num("snackG") + " g = " + fmt(snackKg, 3) + " kg");
     out("oMealWeight", M + " meals x " + num("mealG") + " g = " + fmt(mealKg, 3) + " kg");
 
-    // Meat breakdown
     var totalPct = num("chPct") + num("poPct") + num("bePct");
     var sumCooked = 0, sumBuy = 0, sumCost = 0, sumMoney = 0;
     var meatLines = [];
@@ -258,15 +272,15 @@
       var loss = num(m.key + "Loss") / 100;
       var buy = cook ? cooked * (1 + loss) : cooked;
       var cost = buy * num(m.key + "Price");
-      var money$ = mealBudget * share;
-      res[m.key] = { money: money$ };
-      sumCooked += cooked; sumBuy += buy; sumCost += cost; sumMoney += money$;
+      var avail = mealBudget * share;
+      res[m.key] = { money: avail };
+      sumCooked += cooked; sumBuy += buy; sumCost += cost; sumMoney += avail;
       var K = m.key.charAt(0).toUpperCase() + m.key.slice(1);
       out("o" + K + "Share", fmt(share * 100, 1) + " %");
       out("o" + K + "Cooked", fmt(cooked, 3) + " kg");
       out("o" + K + "Buy", fmt(buy, 3) + " kg");
       out("o" + K + "Cost", money(cost));
-      out("o" + K + "Money", money(money$));
+      out("o" + K + "Money", money(avail));
       meatLines.push(m.name + ": share " + fmt(share * 100, 1) + "% -> cooked " +
         fmt(mealKg, 3) + " x " + fmt(share, 4) + " = " + fmt(cooked, 3) + " kg" +
         (cook ? ", buy " + fmt(cooked, 3) + " x " + fmt(1 + loss, 2) + " = " : ", buy = ") +
@@ -283,7 +297,6 @@
       ? "Cook at home is ON: kg to buy includes the cooking-loss %."
       : "Cook at home is OFF: kg to buy equals cooked kg needed.");
 
-    // Additional cost
     var extraPct = mealCost > 0 ? extra / mealCost * 100 : NaN;
     var newMeal = mealCost + extra;
     out("oExtraPct", pct(extraPct));
@@ -292,7 +305,6 @@
     out("oMeals", M);
     out("oSnacks", S);
 
-    // Full example
     var L = [];
     L.push("Meals per month  = " + mealsDay + " x " + DAYS + " = " + M);
     L.push("Snacks per month = " + snacksDay + " x " + DAYS + " = " + S);
